@@ -1,7 +1,8 @@
+
 // Configurações da API do Google Sheets
-export const GOOGLE_API_KEY = "AIzaSyBFBUREl4eZ_AqzQSn1BHSUUHHNPdWcF58";
+export const GOOGLE_API_KEY = "AIzaSyBFBUREl4eZ_AqzQSn1BHSUUHNPdWcF58";
 export const GOOGLE_CLIENT_ID = "697991864666-uen5tcg968ranvc4eiqlac7or956f0gj.apps.googleusercontent.com";
-export const GOOGLE_SHEET_ID = "YOUR_SHEET_ID"; // Você precisa adicionar o ID da sua planilha aqui
+export const GOOGLE_SHEET_ID = "1RT9Kn-4xp6YC5QCa2snL0aQ7ONtsCWBwgDxy8wMrNZI";
 
 export const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
