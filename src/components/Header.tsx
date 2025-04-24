@@ -4,7 +4,13 @@ import { Home, Building, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Header = () => {
-  const location = useLocation();
+  // Wrap useLocation in a try/catch to prevent errors if rendered outside Router context
+  let location = { pathname: '' };
+  try {
+    location = useLocation();
+  } catch (error) {
+    console.error('Header rendered outside Router context', error);
+  }
   
   return (
     <header className="bg-primary text-white p-4 shadow-md w-full">
@@ -13,8 +19,8 @@ const Header = () => {
         
         <nav className="flex items-center space-x-2">
           <NavLink 
-            to="/" 
-            active={location.pathname === '/'} 
+            to="/dashboard" 
+            active={location.pathname === '/dashboard'} 
             icon={<Home size={20} />}
           >
             Dashboard
