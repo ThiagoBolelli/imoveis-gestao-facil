@@ -1,3 +1,4 @@
+
 import { Building, House, KeyRound, LandPlot, Plus, Trash2 } from 'lucide-react';
 import { Property } from '@/services/googleSheetsService';
 import { formatCurrency } from '@/lib/utils';
