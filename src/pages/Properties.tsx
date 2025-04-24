@@ -19,8 +19,8 @@ const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [purposeFilter, setPurposeFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [purposeFilter, setPurposeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
@@ -54,12 +54,12 @@ const Properties = () => {
     }
     
     // Filtrar por finalidade
-    if (purposeFilter) {
+    if (purposeFilter && purposeFilter !== 'all') {
       results = results.filter(property => property.purpose === purposeFilter);
     }
     
     // Filtrar por tipo
-    if (typeFilter) {
+    if (typeFilter && typeFilter !== 'all') {
       results = results.filter(property => property.type === typeFilter);
     }
     
@@ -110,7 +110,7 @@ const Properties = () => {
                   <SelectValue placeholder="Finalidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="Venda">Venda</SelectItem>
                   <SelectItem value="Aluguel">Aluguel</SelectItem>
                 </SelectContent>
@@ -126,7 +126,7 @@ const Properties = () => {
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {propertyTypes.map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
@@ -138,8 +138,8 @@ const Properties = () => {
               variant="outline"
               onClick={() => {
                 setSearchQuery('');
-                setPurposeFilter('');
-                setTypeFilter('');
+                setPurposeFilter('all');
+                setTypeFilter('all');
               }}
             >
               <Filter className="mr-2 h-4 w-4" />
@@ -167,7 +167,7 @@ const Properties = () => {
           <Building className="h-16 w-16 mx-auto text-gray-300 mb-4" />
           <h3 className="text-xl font-medium text-gray-600">Nenhum imóvel encontrado</h3>
           <p className="text-gray-500 mt-2">
-            {searchQuery || purposeFilter || typeFilter
+            {searchQuery || purposeFilter !== 'all' || typeFilter !== 'all'
               ? "Tente ajustar os filtros de busca"
               : "Adicione seu primeiro imóvel clicando no botão acima"}
           </p>

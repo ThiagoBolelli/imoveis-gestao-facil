@@ -204,7 +204,7 @@ const TenantForm = ({ onSubmit, properties, preSelectedPropertyId }: TenantFormP
                               </SelectItem>
                             ))
                           ) : (
-                            <SelectItem value="no-properties" disabled>
+                            <SelectItem value="no-properties-available" disabled>
                               Nenhum imóvel para aluguel disponível
                             </SelectItem>
                           )}
