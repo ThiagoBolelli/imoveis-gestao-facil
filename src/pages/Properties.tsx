@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Building, Filter } from 'lucide-react';
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import PropertyCard from '@/components/PropertyCard';
 import { GoogleSheetsService, Property } from '@/services/googleSheetsService';
+import { toast } from "sonner";
 
 const Properties = () => {
   const navigate = useNavigate();
@@ -68,6 +68,19 @@ const Properties = () => {
   
   const handleAddTenant = (propertyId: string) => {
     navigate(`/alugueis/adicionar?propertyId=${propertyId}`);
+  };
+
+  const handleDeleteProperty = async (propertyId: string) => {
+    try {
+      await GoogleSheetsService.deleteProperty(propertyId);
+      const updatedProperties = properties.filter(p => p.id !== propertyId);
+      setProperties(updatedProperties);
+      setFilteredProperties(updatedProperties);
+      toast.success("Imóvel excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir imóvel:", error);
+      toast.error("Erro ao excluir imóvel. Tente novamente.");
+    }
   };
   
   // Obter tipos únicos de imóveis para o filtro
@@ -159,6 +172,7 @@ const Properties = () => {
               key={property.id}
               property={property}
               onAddTenant={property.purpose === 'Aluguel' ? handleAddTenant : undefined}
+              onDelete={handleDeleteProperty}
             />
           ))}
         </div>

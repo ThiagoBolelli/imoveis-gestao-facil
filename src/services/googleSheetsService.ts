@@ -1,4 +1,3 @@
-
 import { mockData } from "../lib/googleSheetsConfig";
 
 // Tipos de dados
@@ -104,5 +103,17 @@ export const GoogleSheetsService = {
         }
       }, 500);
     });
-  }
+  },
+
+  deleteProperty: async (propertyId: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const propertyIndex = mockData.properties.findIndex(p => p.id === propertyId);
+        if (propertyIndex !== -1) {
+          mockData.properties.splice(propertyIndex, 1);
+        }
+        resolve();
+      }, 500);
+    });
+  },
 };

@@ -1,13 +1,24 @@
-
-import { Building, House, KeyRound, LandPlot, Plus } from 'lucide-react';
+import { Building, House, KeyRound, LandPlot, Plus, Trash2 } from 'lucide-react';
 import { Property } from '@/services/googleSheetsService';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PropertyCardProps {
   property: Property;
   onAddTenant?: (propertyId: string) => void;
+  onDelete?: (propertyId: string) => void;
 }
 
 // Componente para renderizar o ícone correto com base no tipo de propriedade
@@ -28,7 +39,7 @@ const PropertyIcon = ({ type }: { type: string }) => {
   }
 };
 
-const PropertyCard = ({ property, onAddTenant }: PropertyCardProps) => {
+const PropertyCard = ({ property, onAddTenant, onDelete }: PropertyCardProps) => {
   const { id, address, purpose, owner, type, salePrice, rentalPrice } = property;
   const isRental = purpose === 'Aluguel';
   const price = isRental ? rentalPrice : salePrice;
@@ -61,16 +72,49 @@ const PropertyCard = ({ property, onAddTenant }: PropertyCardProps) => {
             {isRental && <span className="text-xs text-gray-600">/mês</span>}
           </span>
           
-          {isRental && onAddTenant && (
-            <Button 
-              variant="outline" 
-              className="text-xs px-2 py-1 h-8" 
-              onClick={() => onAddTenant(id)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar Inquilino
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {isRental && onAddTenant && (
+              <Button 
+                variant="outline" 
+                className="text-xs px-2 py-1 h-8" 
+                onClick={() => onAddTenant(id)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar Inquilino
+              </Button>
+            )}
+            
+            {onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Imóvel</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
       </div>
     </div>
