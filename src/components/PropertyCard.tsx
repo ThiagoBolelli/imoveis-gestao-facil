@@ -20,6 +20,7 @@ interface PropertyCardProps {
   property: Property;
   onAddTenant?: (propertyId: string) => void;
   onDelete?: (propertyId: string) => void;
+  hasTenant?: boolean;
 }
 
 // Componente para renderizar o ícone correto com base no tipo de propriedade
@@ -40,7 +41,7 @@ const PropertyIcon = ({ type }: { type: string }) => {
   }
 };
 
-const PropertyCard = ({ property, onAddTenant, onDelete }: PropertyCardProps) => {
+const PropertyCard = ({ property, onAddTenant, onDelete, hasTenant = false }: PropertyCardProps) => {
   const { id, address, purpose, owner, type, salePrice, rentalPrice } = property;
   const isRental = purpose === 'Aluguel';
   const price = isRental ? rentalPrice : salePrice;
@@ -50,9 +51,20 @@ const PropertyCard = ({ property, onAddTenant, onDelete }: PropertyCardProps) =>
       <div className="relative h-40 bg-gray-200 flex items-center justify-center">
         <PropertyIcon type={type} />
         <Badge 
-          className={`absolute top-2 right-2 ${isRental ? 'bg-blue-500' : 'bg-purple-500'}`}
+          className={`absolute top-2 right-2 ${
+            isRental 
+              ? hasTenant 
+                ? 'bg-green-500' 
+                : 'bg-blue-500' 
+              : 'bg-purple-500'
+          }`}
         >
-          {isRental ? 'Aluguel' : 'Venda'}
+          {isRental 
+            ? hasTenant 
+              ? 'ALUGADO' 
+              : 'Aluguel' 
+            : 'Venda'
+          }
         </Badge>
       </div>
       
@@ -74,7 +86,7 @@ const PropertyCard = ({ property, onAddTenant, onDelete }: PropertyCardProps) =>
           </span>
           
           <div className="flex gap-2">
-            {isRental && onAddTenant && (
+            {isRental && !hasTenant && onAddTenant && (
               <Button 
                 variant="outline" 
                 className="text-xs px-2 py-1 h-8" 
@@ -92,6 +104,8 @@ const PropertyCard = ({ property, onAddTenant, onDelete }: PropertyCardProps) =>
                     variant="destructive"
                     size="icon"
                     className="h-8 w-8"
+                    disabled={hasTenant}
+                    title={hasTenant ? "Remova o inquilino primeiro" : "Excluir imóvel"}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

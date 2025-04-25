@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter } from 'lucide-react';
+import { Search, Plus, Filter, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TenantRow from '@/components/TenantRow';
@@ -16,27 +16,30 @@ const Rentals = () => {
   const [filteredTenants, setFilteredTenants] = useState<Tenant[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const [tenantsData, propertiesData, paymentsData] = await Promise.all([
+        GoogleSheetsService.getTenants(),
+        GoogleSheetsService.getProperties(),
+        GoogleSheetsService.getPayments(),
+      ]);
+      
+      setTenants(tenantsData);
+      setFilteredTenants(tenantsData);
+      setProperties(propertiesData);
+      setPayments(paymentsData);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      toast.error("Erro ao buscar dados. Verifique sua conexão com o Google Sheets.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [tenantsData, propertiesData, paymentsData] = await Promise.all([
-          GoogleSheetsService.getTenants(),
-          GoogleSheetsService.getProperties(),
-          GoogleSheetsService.getPayments(),
-        ]);
-        
-        setTenants(tenantsData);
-        setFilteredTenants(tenantsData);
-        setProperties(propertiesData);
-        setPayments(paymentsData);
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     fetchData();
   }, []);
   
@@ -74,6 +77,19 @@ const Rentals = () => {
       toast.error("Erro ao registrar pagamento. Tente novamente.");
     }
   };
+
+  const handleSyncData = async () => {
+    setIsSyncing(true);
+    try {
+      await fetchData();
+      toast.success("Dados sincronizados com sucesso!");
+    } catch (error) {
+      console.error("Erro ao sincronizar dados:", error);
+      toast.error("Erro ao sincronizar dados. Verifique sua conexão com o Google Sheets.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
   
   // Função para encontrar a propriedade de um inquilino
   const getPropertyForTenant = (propertyId: string) => {
@@ -91,14 +107,26 @@ const Rentals = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-2xl font-bold mb-4 sm:mb-0">Aluguéis</h1>
         
-        <Button 
-          onClick={() => navigate("/alugueis/adicionar")}
-          className="bg-primary hover:bg-primary/90"
-          disabled={rentalPropertiesAvailable.length === 0}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar Inquilino
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleSyncData}
+            disabled={isSyncing}
+            className="bg-background hover:bg-accent"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Sincronizando...' : 'Sincronizar Dados'}
+          </Button>
+          
+          <Button 
+            onClick={() => navigate("/alugueis/adicionar")}
+            className="bg-primary hover:bg-primary/90"
+            disabled={rentalPropertiesAvailable.length === 0}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Inquilino
+          </Button>
+        </div>
       </div>
       
       {/* Barra de busca */}

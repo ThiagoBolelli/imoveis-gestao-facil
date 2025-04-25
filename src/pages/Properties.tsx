@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Building, Filter } from 'lucide-react';
+import { Search, Building, Filter, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,32 +12,40 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import PropertyCard from '@/components/PropertyCard';
-import { GoogleSheetsService, Property } from '@/services/googleSheetsService';
+import { GoogleSheetsService, Property, Tenant } from '@/services/googleSheetsService';
 import { toast } from "sonner";
 
 const Properties = () => {
   const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [purposeFilter, setPurposeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [propertiesData, tenantsData] = await Promise.all([
+        GoogleSheetsService.getProperties(),
+        GoogleSheetsService.getTenants()
+      ]);
+      setProperties(propertiesData);
+      setFilteredProperties(propertiesData);
+      setTenants(tenantsData);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      toast.error("Erro ao buscar dados. Verifique sua conexão com o Google Sheets.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const data = await GoogleSheetsService.getProperties();
-        setProperties(data);
-        setFilteredProperties(data);
-      } catch (error) {
-        console.error('Erro ao buscar propriedades:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchProperties();
+    fetchData();
   }, []);
   
   useEffect(() => {
@@ -66,11 +75,22 @@ const Properties = () => {
     setFilteredProperties(results);
   }, [searchQuery, purposeFilter, typeFilter, properties]);
   
+  // Verifica se um imóvel tem inquilino
+  const propertyHasTenant = (propertyId: string) => {
+    return tenants.some(tenant => tenant.propertyId === propertyId);
+  };
+  
   const handleAddTenant = (propertyId: string) => {
     navigate(`/alugueis/adicionar?propertyId=${propertyId}`);
   };
 
   const handleDeleteProperty = async (propertyId: string) => {
+    // Verificar novamente se não tem inquilino (segurança adicional)
+    if (propertyHasTenant(propertyId)) {
+      toast.error("Não é possível excluir um imóvel com inquilino. Remova o inquilino primeiro.");
+      return;
+    }
+    
     try {
       await GoogleSheetsService.deleteProperty(propertyId);
       const updatedProperties = properties.filter(p => p.id !== propertyId);
@@ -82,6 +102,19 @@ const Properties = () => {
       toast.error("Erro ao excluir imóvel. Tente novamente.");
     }
   };
+
+  const handleSyncData = async () => {
+    setIsSyncing(true);
+    try {
+      await fetchData();
+      toast.success("Dados sincronizados com sucesso!");
+    } catch (error) {
+      console.error("Erro ao sincronizar dados:", error);
+      toast.error("Erro ao sincronizar dados. Verifique sua conexão com o Google Sheets.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
   
   // Obter tipos únicos de imóveis para o filtro
   const propertyTypes = [...new Set(properties.map(property => property.type))];
@@ -91,13 +124,25 @@ const Properties = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-2xl font-bold mb-4 sm:mb-0">Imóveis</h1>
         
-        <Button 
-          onClick={() => navigate("/imoveis/adicionar")}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Building className="mr-2 h-4 w-4" />
-          Adicionar Imóvel
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleSyncData}
+            disabled={isSyncing}
+            className="bg-background hover:bg-accent"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Sincronizando...' : 'Sincronizar Dados'}
+          </Button>
+          
+          <Button 
+            onClick={() => navigate("/imoveis/adicionar")}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Building className="mr-2 h-4 w-4" />
+            Adicionar Imóvel
+          </Button>
+        </div>
       </div>
       
       {/* Barra de busca e filtros */}
@@ -171,7 +216,8 @@ const Properties = () => {
             <PropertyCard
               key={property.id}
               property={property}
-              onAddTenant={property.purpose === 'Aluguel' ? handleAddTenant : undefined}
+              hasTenant={propertyHasTenant(property.id)}
+              onAddTenant={property.purpose === 'Aluguel' && !propertyHasTenant(property.id) ? handleAddTenant : undefined}
               onDelete={handleDeleteProperty}
             />
           ))}
