@@ -1,20 +1,11 @@
 
-import { Building, House, KeyRound, LandPlot, Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Property } from '@/services/googleSheetsService';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { PropertyIcon } from './property/PropertyIcon';
+import { PropertyStatus } from './property/PropertyStatus';
+import { DeletePropertyDialog } from './property/DeletePropertyDialog';
 
 interface PropertyCardProps {
   property: Property;
@@ -22,24 +13,6 @@ interface PropertyCardProps {
   onDelete?: (propertyId: string) => void;
   hasTenant?: boolean;
 }
-
-// Componente para renderizar o ícone correto com base no tipo de propriedade
-const PropertyIcon = ({ type }: { type: string }) => {
-  switch (type.toLowerCase()) {
-    case 'casa':
-      return <House className="h-5 w-5" />;
-    case 'apartamento':
-      return <Building className="h-5 w-5" />;
-    case 'kitnet':
-      return <Building className="h-5 w-5" />;
-    case 'propriedade rural':
-      return <LandPlot className="h-5 w-5" />;
-    case 'terreno':
-      return <LandPlot className="h-5 w-5" />;
-    default:
-      return <Building className="h-5 w-5" />;
-  }
-};
 
 const PropertyCard = ({ property, onAddTenant, onDelete, hasTenant = false }: PropertyCardProps) => {
   const { id, address, purpose, owner, type, salePrice, rentalPrice } = property;
@@ -50,22 +23,7 @@ const PropertyCard = ({ property, onAddTenant, onDelete, hasTenant = false }: Pr
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="relative h-40 bg-gray-200 flex items-center justify-center">
         <PropertyIcon type={type} />
-        <Badge 
-          className={`absolute top-2 right-2 ${
-            isRental 
-              ? hasTenant 
-                ? 'bg-green-500' 
-                : 'bg-blue-500' 
-              : 'bg-purple-500'
-          }`}
-        >
-          {isRental 
-            ? hasTenant 
-              ? 'ALUGADO' 
-              : 'Aluguel' 
-            : 'Venda'
-          }
-        </Badge>
+        <PropertyStatus isRental={isRental} hasTenant={hasTenant} />
       </div>
       
       <div className="p-4">
@@ -98,36 +56,10 @@ const PropertyCard = ({ property, onAddTenant, onDelete, hasTenant = false }: Pr
             )}
             
             {onDelete && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="destructive"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={hasTenant}
-                    title={hasTenant ? "Remova o inquilino primeiro" : "Excluir imóvel"}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir Imóvel</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(id)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Excluir
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <DeletePropertyDialog 
+                onDelete={() => onDelete(id)}
+                disabled={hasTenant}
+              />
             )}
           </div>
         </div>
