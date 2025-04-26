@@ -6,6 +6,7 @@ import { usePropertyFilters } from '@/hooks/usePropertyFilters';
 import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
 import PropertyFilters from '@/components/property/PropertyFilters';
 import PropertyList from '@/components/property/PropertyList';
+import { useSupabaseTenants } from '@/hooks/useSupabaseTenants';
 
 const Properties = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const Properties = () => {
     isLoading, 
     deleteProperty 
   } = useSupabaseProperties();
+
+  const { tenants } = useSupabaseTenants();
 
   const {
     filteredProperties,
@@ -26,8 +29,13 @@ const Properties = () => {
     resetFilters
   } = usePropertyFilters(properties);
 
-  const propertyTypes = [...new Set(properties.map(property => property.propertyType))];
+  const propertyTypes = [...new Set(properties.map(property => property.type))];
   
+  // Verificar se um imóvel tem inquilino
+  const hasTenant = (propertyId: string) => {
+    return tenants.some(tenant => tenant.propertyId === propertyId);
+  };
+
   const handleAddTenant = (propertyId: string) => {
     navigate(`/alugueis/adicionar?propertyId=${propertyId}`);
   };
@@ -62,7 +70,7 @@ const Properties = () => {
       <PropertyList
         properties={filteredProperties}
         isLoading={isLoading}
-        hasTenant={false}
+        hasTenant={hasTenant}
         onAddTenant={handleAddTenant}
         onDelete={deleteProperty}
       />

@@ -1,46 +1,25 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Filter, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TenantRow from '@/components/TenantRow';
-import { GoogleSheetsService, Tenant, Payment, Property } from '@/services/googleSheetsService';
 import { toast } from '@/components/ui/sonner';
+import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
+import { useSupabaseTenants } from '@/hooks/useSupabaseTenants';
+import { useSupabasePayments } from '@/hooks/useSupabasePayments';
 
 const Rentals = () => {
   const navigate = useNavigate();
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [filteredTenants, setFilteredTenants] = useState<Tenant[]>([]);
+  const { properties } = useSupabaseProperties();
+  const { tenants, isLoading: tenantsLoading } = useSupabaseTenants();
+  const { payments, isLoading: paymentsLoading, updatePaymentStatus } = useSupabasePayments();
+  const [filteredTenants, setFilteredTenants] = useState(tenants);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      const [tenantsData, propertiesData, paymentsData] = await Promise.all([
-        GoogleSheetsService.getTenants(),
-        GoogleSheetsService.getProperties(),
-        GoogleSheetsService.getPayments(),
-      ]);
-      
-      setTenants(tenantsData);
-      setFilteredTenants(tenantsData);
-      setProperties(propertiesData);
-      setPayments(paymentsData);
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error);
-      toast.error("Erro ao buscar dados. Verifique sua conexão com o Google Sheets.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const isLoading = tenantsLoading || paymentsLoading;
   
   useEffect(() => {
     if (searchQuery) {
@@ -61,14 +40,11 @@ const Rentals = () => {
   const handleMarkAsPaid = async (paymentId: string) => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      await GoogleSheetsService.updatePaymentStatus(paymentId, 'Pago', today);
-      
-      // Atualizar o estado local
-      setPayments(prevPayments => 
-        prevPayments.map(payment => 
-          payment.id === paymentId ? { ...payment, status: 'Pago', paymentDate: today } : payment
-        )
-      );
+      await updatePaymentStatus({
+        paymentId,
+        status: 'Pago',
+        paymentDate: today
+      });
       
       toast.success("Pagamento registrado com sucesso!");
     } catch (error) {
@@ -80,11 +56,16 @@ const Rentals = () => {
   const handleSyncData = async () => {
     setIsSyncing(true);
     try {
-      await fetchData();
+      // Recarregar dados do Supabase
+      await Promise.all([
+        useSupabaseProperties().properties,
+        useSupabaseTenants().tenants,
+        useSupabasePayments().payments
+      ]);
       toast.success("Dados sincronizados com sucesso!");
     } catch (error) {
       console.error("Erro ao sincronizar dados:", error);
-      toast.error("Erro ao sincronizar dados. Verifique sua conexão com o Google Sheets.");
+      toast.error("Erro ao sincronizar dados.");
     } finally {
       setIsSyncing(false);
     }
@@ -170,7 +151,7 @@ const Rentals = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-primary font-bold">
-                    R$ {property.rentalPrice.toFixed(2).replace('.', ',')}
+                    R$ {Number(property.rentalPrice).toFixed(2).replace('.', ',')}
                   </p>
                   <Button 
                     size="sm"

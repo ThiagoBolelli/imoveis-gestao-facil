@@ -19,7 +19,22 @@ export const useSupabaseProperties = () => {
         throw error;
       }
 
-      return data || [];
+      // Mapear os dados do Supabase para o formato esperado pelo restante da aplicação
+      return data.map(item => ({
+        id: item.id,
+        address: item.address,
+        purpose: item.listingtype, // mapeamento de listingtype para purpose
+        owner: item.owner,
+        type: item.propertytype, // mapeamento de propertytype para type
+        salePrice: item.saleprice || 0,
+        rentalPrice: item.rentalprice || 0,
+        description: item.description || '',
+        area: item.area,
+        bathrooms: item.bathrooms,
+        bedrooms: item.bedrooms,
+        createdAt: item.createdat,
+        images: item.images || []
+      })) || [];
     },
   });
 
@@ -29,11 +44,11 @@ export const useSupabaseProperties = () => {
         .from('properties')
         .insert([{
           address: property.address,
-          listingType: property.purpose,
+          listingtype: property.purpose,
           owner: property.owner,
-          propertyType: property.type,
-          rentalPrice: property.rentalPrice,
-          salePrice: property.salePrice,
+          propertytype: property.type,
+          rentalprice: property.rentalPrice,
+          saleprice: property.salePrice,
           description: property.description || null,
         }])
         .select()

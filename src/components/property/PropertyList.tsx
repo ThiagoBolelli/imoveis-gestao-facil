@@ -1,6 +1,6 @@
 
 import { Building } from 'lucide-react';
-import { Property, Tenant } from '@/services/googleSheetsService';
+import { Property } from '@/services/googleSheetsService';
 import PropertyCard from '@/components/PropertyCard';
 
 interface PropertyListProps {

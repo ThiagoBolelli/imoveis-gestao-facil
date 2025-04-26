@@ -19,7 +19,16 @@ export const useSupabaseTenants = () => {
         throw error;
       }
 
-      return data || [];
+      // Mapear os dados do Supabase para o formato esperado pelo restante da aplicação
+      return data.map(item => ({
+        id: item.id,
+        name: item.name,
+        propertyId: item.propertyid,
+        email: item.email || '',
+        phone: item.phone || '',
+        startDate: item.startdate,
+        endDate: item.enddate
+      })) || [];
     },
   });
 
@@ -29,8 +38,10 @@ export const useSupabaseTenants = () => {
         .from('tenants')
         .insert([{
           name: tenant.name,
-          propertyId: tenant.propertyId,
-          startDate: new Date().toISOString(),
+          propertyid: tenant.propertyId,
+          startdate: new Date().toISOString(),
+          email: tenant.email || null,
+          phone: tenant.phone || null
         }])
         .select()
         .single();

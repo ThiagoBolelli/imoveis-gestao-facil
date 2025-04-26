@@ -1,10 +1,11 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Users, AlertTriangle, CircleDollarSign, Building, KeyRound, LandPlot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
-import { GoogleSheetsService, Property, Payment, Tenant } from '@/services/googleSheetsService';
+import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
+import { useSupabaseTenants } from '@/hooks/useSupabaseTenants';
+import { useSupabasePayments } from '@/hooks/useSupabasePayments';
 
 // Componente de card de estatísticas
 const StatsCard = ({ 
@@ -97,32 +98,11 @@ const PaymentItem = ({
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { properties, isLoading: propertiesLoading } = useSupabaseProperties();
+  const { tenants, isLoading: tenantsLoading } = useSupabaseTenants();
+  const { payments, isLoading: paymentsLoading } = useSupabasePayments();
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [propertiesData, paymentsData, tenantsData] = await Promise.all([
-          GoogleSheetsService.getProperties(),
-          GoogleSheetsService.getPayments(),
-          GoogleSheetsService.getTenants(),
-        ]);
-        
-        setProperties(propertiesData);
-        setPayments(paymentsData);
-        setTenants(tenantsData);
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
+  const isLoading = propertiesLoading || tenantsLoading || paymentsLoading;
   
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
@@ -134,25 +114,25 @@ const Dashboard = () => {
   const propertiesForRent = properties.filter(p => p.purpose === 'Aluguel').length;
   
   const totalTenants = tenants.length;
-  const occupancyRate = totalProperties > 0 
+  const occupancyRate = propertiesForRent > 0 
     ? Math.round((totalTenants / propertiesForRent) * 100) 
     : 0;
   
   const pendingPayments = payments.filter(p => p.status === 'Não Pago');
-  const pendingAmount = pendingPayments.reduce((sum, payment) => sum + payment.amount, 0);
+  const pendingAmount = pendingPayments.reduce((sum, payment) => sum + Number(payment.amount), 0);
   
   const totalPortfolioValue = properties.reduce((sum, property) => {
-    return sum + (property.purpose === 'Venda' ? property.salePrice : 0);
+    return sum + (property.purpose === 'Venda' ? Number(property.salePrice) : 0);
   }, 0);
   
   const monthlyRentalIncome = properties
     .filter(p => p.purpose === 'Aluguel')
-    .reduce((sum, property) => sum + property.rentalPrice, 0);
+    .reduce((sum, property) => sum + Number(property.rentalPrice), 0);
   
-  // Ordenar propriedades mais recentes (simulação, na prática seriam as últimas adicionadas)
+  // Ordenar propriedades mais recentes
   const recentProperties = [...properties].slice(0, 5);
   
-  // Próximos pagamentos (simulação)
+  // Próximos pagamentos
   const upcomingPayments = pendingPayments.slice(0, 3);
   
   return (
@@ -248,7 +228,7 @@ const Dashboard = () => {
                   icon={icon}
                   type={property.type}
                   address={property.address}
-                  price={isRental ? property.rentalPrice : property.salePrice}
+                  price={isRental ? Number(property.rentalPrice) : Number(property.salePrice)}
                   isRental={isRental}
                 />
               );
@@ -286,7 +266,7 @@ const Dashboard = () => {
                   key={payment.id}
                   tenant={tenant.name}
                   dueDate={`Dia ${tenant.dueDate}`}
-                  amount={payment.amount}
+                  amount={Number(payment.amount)}
                 />
               );
             })}
