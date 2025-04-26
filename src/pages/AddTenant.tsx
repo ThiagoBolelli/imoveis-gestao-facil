@@ -2,47 +2,50 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TenantForm from '@/components/TenantForm';
-import { GoogleSheetsService, Property } from '@/services/googleSheetsService';
 import { toast } from '@/components/ui/sonner';
-import { getCurrentMonth } from '@/lib/utils';
+import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
+import { useSupabaseTenants } from '@/hooks/useSupabaseTenants';
+import { useSupabasePayments } from '@/hooks/useSupabasePayments';
 
 const AddTenant = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [properties, setProperties] = useState<Property[]>([]);
+  const { properties, isLoading: propertiesLoading } = useSupabaseProperties();
+  const { addTenant } = useSupabaseTenants();
+  const { addPayment } = useSupabasePayments();
   const [isLoading, setIsLoading] = useState(true);
   const propertyId = searchParams.get('propertyId');
   
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const data = await GoogleSheetsService.getProperties();
-        // Filtrar apenas imóveis para aluguel
-        setProperties(data.filter(p => p.purpose === 'Aluguel'));
-      } catch (error) {
-        console.error('Erro ao buscar imóveis:', error);
-        toast.error("Erro ao buscar imóveis. Tente novamente.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchProperties();
-  }, []);
+    // Wait for properties to load
+    if (!propertiesLoading) {
+      setIsLoading(false);
+    }
+  }, [propertiesLoading]);
   
   const handleSubmit = async (data: any) => {
     try {
       // Adicionar o inquilino
-      const tenant = await GoogleSheetsService.addTenant(data);
+      const tenant = await addTenant(data);
       
+      // Get property for rent value
+      const property = properties.find(p => p.id === data.propertyId);
+      if (!property) {
+        throw new Error('Propriedade não encontrada');
+      }
+
       // Adicionar pagamento para o mês atual
-      const currentMonth = getCurrentMonth() + ' ' + new Date().getFullYear();
-      await GoogleSheetsService.addPayment({
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1; // 1-12
+      const currentYear = currentDate.getFullYear();
+      
+      await addPayment({
         tenantId: tenant.id,
-        month: currentMonth,
-        amount: tenant.monthlyRent,
-        status: 'Não Pago',
-        paymentDate: '',
+        propertyId: data.propertyId,
+        amount: property.rentalPrice,
+        dueDate: `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${data.dueDate.toString().padStart(2, '0')}`,
+        month: currentMonth.toString(),
+        year: currentYear.toString()
       });
       
       toast.success("Inquilino adicionado com sucesso!");
@@ -57,7 +60,10 @@ const AddTenant = () => {
     return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
   }
   
-  if (properties.length === 0) {
+  // Filtrar apenas propriedades para aluguel
+  const rentalProperties = properties.filter(p => p.purpose === 'Aluguel');
+  
+  if (rentalProperties.length === 0) {
     return (
       <div className="container mx-auto p-4 text-center">
         <h1 className="text-2xl font-bold mb-6">Adicionar Inquilino</h1>
@@ -78,7 +84,7 @@ const AddTenant = () => {
   
   return <TenantForm 
     onSubmit={handleSubmit} 
-    properties={properties} 
+    properties={rentalProperties} 
     preSelectedPropertyId={propertyId || undefined} 
   />;
 };

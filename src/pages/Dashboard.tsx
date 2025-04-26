@@ -133,7 +133,7 @@ const Dashboard = () => {
   const recentProperties = [...properties].slice(0, 5);
   
   // Próximos pagamentos
-  const upcomingPayments = pendingPayments.slice(0, 3);
+  const upcomingPayments = payments.filter(p => p.status === 'Não Pago').slice(0, 3);
   
   return (
     <div className="container mx-auto p-4">
@@ -265,7 +265,7 @@ const Dashboard = () => {
                 <PaymentItem
                   key={payment.id}
                   tenant={tenant.name}
-                  dueDate={`Dia ${tenant.dueDate}`}
+                  dueDate={`Dia ${tenant.dueDate || 10}`} // Use default if not available
                   amount={Number(payment.amount)}
                 />
               );

@@ -28,7 +28,7 @@ export const useSupabasePayments = () => {
         dueDate: item.duedate,
         status: item.ispaid ? 'Pago' : 'Não Pago',
         paymentDate: item.paiddate,
-        month: item.month,
+        month: item.month.toString(), // Convert to string to match existing type
         year: item.year
       })) || [];
     },
@@ -63,15 +63,15 @@ export const useSupabasePayments = () => {
     mutationFn: async (payment: Omit<Payment, 'id' | 'status' | 'paymentDate'>) => {
       const { data, error } = await supabase
         .from('payments')
-        .insert([{
+        .insert({
           tenantid: payment.tenantId,
           propertyid: payment.propertyId,
           amount: payment.amount,
           duedate: payment.dueDate,
           ispaid: false,
-          month: payment.month,
-          year: payment.year
-        }])
+          month: parseInt(payment.month), // Convert string to number for database
+          year: parseInt(payment.year.toString()) // Ensure it's a number
+        })
         .select()
         .single();
 

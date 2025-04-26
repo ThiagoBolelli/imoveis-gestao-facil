@@ -27,7 +27,9 @@ export const useSupabaseTenants = () => {
         email: item.email || '',
         phone: item.phone || '',
         startDate: item.startdate,
-        endDate: item.enddate
+        endDate: item.enddate,
+        dueDate: 10, // Default due date as it's not stored in the database
+        monthlyRent: 0 // Default monthly rent as it's not stored in the database
       })) || [];
     },
   });
@@ -36,13 +38,13 @@ export const useSupabaseTenants = () => {
     mutationFn: async (tenant: Omit<Tenant, 'id'>) => {
       const { data, error } = await supabase
         .from('tenants')
-        .insert([{
+        .insert({
           name: tenant.name,
           propertyid: tenant.propertyId,
-          startdate: new Date().toISOString(),
+          startdate: new Date().toISOString().split('T')[0],
           email: tenant.email || null,
           phone: tenant.phone || null
-        }])
+        })
         .select()
         .single();
 

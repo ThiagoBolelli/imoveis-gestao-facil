@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Filter, RefreshCw } from 'lucide-react';
@@ -9,6 +8,7 @@ import { toast } from '@/components/ui/sonner';
 import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
 import { useSupabaseTenants } from '@/hooks/useSupabaseTenants';
 import { useSupabasePayments } from '@/hooks/useSupabasePayments';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Rentals = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Rentals = () => {
   const [filteredTenants, setFilteredTenants] = useState(tenants);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const queryClient = useQueryClient();
   
   const isLoading = tenantsLoading || paymentsLoading;
   
@@ -58,9 +59,9 @@ const Rentals = () => {
     try {
       // Recarregar dados do Supabase
       await Promise.all([
-        useSupabaseProperties().properties,
-        useSupabaseTenants().tenants,
-        useSupabasePayments().payments
+        queryClient.invalidateQueries({ queryKey: ['properties'] }),
+        queryClient.invalidateQueries({ queryKey: ['tenants'] }),
+        queryClient.invalidateQueries({ queryKey: ['payments'] })
       ]);
       toast.success("Dados sincronizados com sucesso!");
     } catch (error) {
@@ -187,15 +188,27 @@ const Rentals = () => {
           <div className="text-center py-6">Carregando inquilinos...</div>
         ) : filteredTenants.length > 0 ? (
           <div className="space-y-4">
-            {filteredTenants.map(tenant => (
-              <TenantRow
-                key={tenant.id}
-                tenant={tenant}
-                property={getPropertyForTenant(tenant.propertyId)}
-                payments={payments.filter(p => p.tenantId === tenant.id)}
-                onMarkAsPaid={handleMarkAsPaid}
-              />
-            ))}
+            {filteredTenants.map(tenant => {
+              const propertyInfo = getPropertyForTenant(tenant.propertyId);
+              // Create tenant object with required fields for TenantRow
+              const tenantForRow = {
+                id: tenant.id,
+                name: tenant.name,
+                propertyId: tenant.propertyId,
+                dueDate: tenant.dueDate || 10, // Use default if not set
+                monthlyRent: propertyInfo ? propertyInfo.rentalPrice : 0
+              };
+              
+              return (
+                <TenantRow
+                  key={tenant.id}
+                  tenant={tenantForRow}
+                  property={propertyInfo}
+                  payments={payments.filter(p => p.tenantId === tenant.id)}
+                  onMarkAsPaid={handleMarkAsPaid}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="bg-gray-50 p-6 rounded-lg text-center">
