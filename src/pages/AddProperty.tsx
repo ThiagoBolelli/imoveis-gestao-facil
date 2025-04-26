@@ -1,21 +1,15 @@
 
 import PropertyForm from '@/components/PropertyForm';
-import { GoogleSheetsService } from '@/services/googleSheetsService';
-import { toast } from '@/components/ui/sonner';
+import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
 import { useNavigate } from 'react-router-dom';
 
 const AddProperty = () => {
   const navigate = useNavigate();
+  const { addProperty } = useSupabaseProperties();
   
   const handleSubmit = async (data: any) => {
-    try {
-      await GoogleSheetsService.addProperty(data);
-      toast.success("Imóvel adicionado com sucesso!");
-      navigate("/imoveis");
-    } catch (error) {
-      console.error('Erro ao adicionar imóvel:', error);
-      toast.error("Erro ao adicionar imóvel. Tente novamente.");
-    }
+    await addProperty(data);
+    navigate("/imoveis");
   };
   
   return <PropertyForm onSubmit={handleSubmit} />;

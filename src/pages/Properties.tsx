@@ -1,10 +1,9 @@
 
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useProperties } from '@/hooks/useProperties';
 import { usePropertyFilters } from '@/hooks/usePropertyFilters';
+import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
 import PropertyFilters from '@/components/property/PropertyFilters';
 import PropertyList from '@/components/property/PropertyList';
 
@@ -13,12 +12,8 @@ const Properties = () => {
   const { 
     properties, 
     isLoading, 
-    isSyncing, 
-    fetchData, 
-    handleSyncData, 
-    handleDeleteProperty,
-    propertyHasTenant 
-  } = useProperties();
+    deleteProperty 
+  } = useSupabaseProperties();
 
   const {
     filteredProperties,
@@ -31,11 +26,7 @@ const Properties = () => {
     resetFilters
   } = usePropertyFilters(properties);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const propertyTypes = [...new Set(properties.map(property => property.type))];
+  const propertyTypes = [...new Set(properties.map(property => property.propertyType))];
   
   const handleAddTenant = (propertyId: string) => {
     navigate(`/alugueis/adicionar?propertyId=${propertyId}`);
@@ -47,16 +38,6 @@ const Properties = () => {
         <h1 className="text-2xl font-bold mb-4 sm:mb-0">Imóveis</h1>
         
         <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={handleSyncData}
-            disabled={isSyncing}
-            className="bg-background hover:bg-accent"
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Sincronizando...' : 'Sincronizar Dados'}
-          </Button>
-          
           <Button 
             onClick={() => navigate("/imoveis/adicionar")}
             className="bg-primary hover:bg-primary/90"
@@ -81,9 +62,9 @@ const Properties = () => {
       <PropertyList
         properties={filteredProperties}
         isLoading={isLoading}
-        hasTenant={propertyHasTenant}
+        hasTenant={false}
         onAddTenant={handleAddTenant}
-        onDelete={handleDeleteProperty}
+        onDelete={deleteProperty}
       />
     </div>
   );
