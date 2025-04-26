@@ -9,7 +9,143 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      payments: {
+        Row: {
+          amount: number
+          duedate: string
+          id: string
+          ispaid: boolean
+          month: number
+          paiddate: string | null
+          propertyid: string | null
+          tenantid: string | null
+          year: number
+        }
+        Insert: {
+          amount: number
+          duedate: string
+          id: string
+          ispaid: boolean
+          month: number
+          paiddate?: string | null
+          propertyid?: string | null
+          tenantid?: string | null
+          year: number
+        }
+        Update: {
+          amount?: number
+          duedate?: string
+          id?: string
+          ispaid?: boolean
+          month?: number
+          paiddate?: string | null
+          propertyid?: string | null
+          tenantid?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_propertyid_fkey"
+            columns: ["propertyid"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_tenantid_fkey"
+            columns: ["tenantid"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      properties: {
+        Row: {
+          address: string
+          area: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          createdat: string
+          description: string | null
+          id: string
+          images: string[] | null
+          listingtype: string
+          owner: string
+          propertytype: string
+          rentalprice: number | null
+          saleprice: number | null
+        }
+        Insert: {
+          address: string
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          createdat: string
+          description?: string | null
+          id: string
+          images?: string[] | null
+          listingtype: string
+          owner: string
+          propertytype: string
+          rentalprice?: number | null
+          saleprice?: number | null
+        }
+        Update: {
+          address?: string
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          createdat?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          listingtype?: string
+          owner?: string
+          propertytype?: string
+          rentalprice?: number | null
+          saleprice?: number | null
+        }
+        Relationships: []
+      }
+      tenants: {
+        Row: {
+          email: string | null
+          enddate: string | null
+          id: string
+          name: string
+          phone: string | null
+          propertyid: string | null
+          startdate: string
+        }
+        Insert: {
+          email?: string | null
+          enddate?: string | null
+          id: string
+          name: string
+          phone?: string | null
+          propertyid?: string | null
+          startdate: string
+        }
+        Update: {
+          email?: string | null
+          enddate?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          propertyid?: string | null
+          startdate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenants_propertyid_fkey"
+            columns: ["propertyid"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
