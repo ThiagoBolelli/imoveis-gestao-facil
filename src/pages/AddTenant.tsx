@@ -26,36 +26,42 @@ const AddTenant = () => {
   const handleSubmit = async (data: any) => {
     try {
       // Adicionar o inquilino
-      const tenantData = await addTenant({
+      addTenant({
         name: data.name,
         propertyId: data.propertyId,
         email: data.email,
         phone: data.phone,
         dueDate: data.dueDate
+      }, {
+        onSuccess: (tenantData) => {
+          // Get property for rent value
+          const property = properties.find(p => p.id === data.propertyId);
+          if (!property) {
+            throw new Error('Propriedade não encontrada');
+          }
+          
+          // Adicionar pagamento para o mês atual
+          const currentDate = new Date();
+          const currentMonth = currentDate.getMonth() + 1; // 1-12
+          const currentYear = currentDate.getFullYear();
+          
+          addPayment({
+            tenantId: tenantData.id,
+            propertyId: data.propertyId,
+            amount: property.rentalPrice,
+            dueDate: `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${data.dueDate.toString().padStart(2, '0')}`,
+            month: currentMonth.toString(),
+            year: currentYear
+          });
+          
+          toast.success("Inquilino adicionado com sucesso!");
+          navigate("/alugueis");
+        },
+        onError: (error) => {
+          console.error('Erro ao adicionar inquilino:', error);
+          toast.error("Erro ao adicionar inquilino. Tente novamente.");
+        }
       });
-      
-      // Get property for rent value
-      const property = properties.find(p => p.id === data.propertyId);
-      if (!property) {
-        throw new Error('Propriedade não encontrada');
-      }
-
-      // Adicionar pagamento para o mês atual
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1; // 1-12
-      const currentYear = currentDate.getFullYear();
-      
-      await addPayment({
-        tenantId: tenantData.id,
-        propertyId: data.propertyId,
-        amount: property.rentalPrice,
-        dueDate: `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${data.dueDate.toString().padStart(2, '0')}`,
-        month: currentMonth.toString(),
-        year: currentYear
-      });
-      
-      toast.success("Inquilino adicionado com sucesso!");
-      navigate("/alugueis");
     } catch (error) {
       console.error('Erro ao adicionar inquilino:', error);
       toast.error("Erro ao adicionar inquilino. Tente novamente.");
