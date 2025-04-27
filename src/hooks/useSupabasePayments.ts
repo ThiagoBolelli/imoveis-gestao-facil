@@ -96,7 +96,7 @@ export const useSupabasePayments = () => {
 
       const { data, error } = await supabase
         .from('payments')
-        .insert([paymentData])  // Wrap in array to match expected format
+        .insert(paymentData)
         .select()
         .single();
 
