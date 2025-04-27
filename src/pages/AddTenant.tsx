@@ -26,7 +26,13 @@ const AddTenant = () => {
   const handleSubmit = async (data: any) => {
     try {
       // Adicionar o inquilino
-      const tenantData = await addTenant(data);
+      const tenantData = await addTenant({
+        name: data.name,
+        propertyId: data.propertyId,
+        email: data.email,
+        phone: data.phone,
+        dueDate: data.dueDate
+      });
       
       // Get property for rent value
       const property = properties.find(p => p.id === data.propertyId);

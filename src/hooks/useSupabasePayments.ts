@@ -4,6 +4,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import type { Payment } from '@/services/googleSheetsService';
 
+// Create a type that matches our database schema
+type PaymentInsert = {
+  tenantid: string;
+  propertyid: string;
+  amount: number;
+  duedate: string;
+  ispaid: boolean;
+  month: number;
+  year: number;
+  paiddate?: string | null;
+};
+
+// Create a type for our frontend Payment format (for mutation)
+type PaymentInput = {
+  tenantId: string;
+  propertyId: string;
+  amount: number;
+  dueDate: string;
+  month: string;
+  year: number;
+};
+
 export const useSupabasePayments = () => {
   const queryClient = useQueryClient();
 
@@ -60,19 +82,21 @@ export const useSupabasePayments = () => {
   });
 
   const addPaymentMutation = useMutation({
-    mutationFn: async (payment: Omit<Payment, 'id' | 'status' | 'paymentDate'>) => {
+    mutationFn: async (payment: PaymentInput) => {
       // Convert property names to match the database schema
+      const paymentData: PaymentInsert = {
+        tenantid: payment.tenantId,
+        propertyid: payment.propertyId,
+        amount: payment.amount,
+        duedate: payment.dueDate,
+        ispaid: false,
+        month: parseInt(payment.month),
+        year: payment.year
+      };
+
       const { data, error } = await supabase
         .from('payments')
-        .insert([{
-          tenantid: payment.tenantId,
-          propertyid: payment.propertyId,
-          amount: payment.amount,
-          duedate: payment.dueDate,
-          ispaid: false,
-          month: parseInt(payment.month),
-          year: parseInt(payment.year.toString())
-        }])
+        .insert(paymentData)
         .select()
         .single();
 

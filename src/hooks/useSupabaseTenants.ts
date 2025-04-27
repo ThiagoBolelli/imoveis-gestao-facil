@@ -4,6 +4,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import type { Tenant } from '@/services/googleSheetsService';
 
+// Create a type that matches our database schema
+type TenantInsert = {
+  name: string;
+  propertyid: string;
+  startdate: string;
+  email?: string | null;
+  phone?: string | null;
+  enddate?: string | null;
+};
+
+// Create a type for our frontend Tenant format (for mutation)
+type TenantInput = {
+  name: string;
+  propertyId: string;
+  email?: string;
+  phone?: string;
+  dueDate?: number;
+};
+
 export const useSupabaseTenants = () => {
   const queryClient = useQueryClient();
 
@@ -35,16 +54,18 @@ export const useSupabaseTenants = () => {
   });
 
   const addTenantMutation = useMutation({
-    mutationFn: async (tenant: Omit<Tenant, 'id'>) => {
+    mutationFn: async (tenant: TenantInput) => {
+      const tenantData: TenantInsert = {
+        name: tenant.name,
+        propertyid: tenant.propertyId,
+        startdate: new Date().toISOString().split('T')[0],
+        email: tenant.email || null,
+        phone: tenant.phone || null
+      };
+
       const { data, error } = await supabase
         .from('tenants')
-        .insert([{
-          name: tenant.name,
-          propertyid: tenant.propertyId,
-          startdate: new Date().toISOString().split('T')[0],
-          email: tenant.email || null,
-          phone: tenant.phone || null
-        }])
+        .insert(tenantData)
         .select()
         .single();
 
