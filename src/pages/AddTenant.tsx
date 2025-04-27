@@ -34,10 +34,16 @@ const AddTenant = () => {
         dueDate: data.dueDate
       }, {
         onSuccess: (tenantData) => {
+          if (!tenantData) {
+            toast.error("Erro ao obter dados do inquilino após cadastro");
+            return;
+          }
+          
           // Get property for rent value
           const property = properties.find(p => p.id === data.propertyId);
           if (!property) {
-            throw new Error('Propriedade não encontrada');
+            toast.error("Propriedade não encontrada");
+            return;
           }
           
           // Adicionar pagamento para o mês atual

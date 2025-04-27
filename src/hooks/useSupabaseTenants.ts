@@ -63,18 +63,18 @@ export const useSupabaseTenants = () => {
         phone: tenant.phone || null
       };
 
+      // Supabase will generate the ID automatically
       const { data, error } = await supabase
         .from('tenants')
         .insert(tenantData)
-        .select()
-        .single();
+        .select();
 
       if (error) {
         toast.error('Erro ao adicionar inquilino');
         throw error;
       }
 
-      return data;
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });

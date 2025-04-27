@@ -94,18 +94,18 @@ export const useSupabasePayments = () => {
         year: payment.year
       };
 
+      // Supabase will generate the ID automatically
       const { data, error } = await supabase
         .from('payments')
         .insert(paymentData)
-        .select()
-        .single();
+        .select();
 
       if (error) {
         toast.error('Erro ao adicionar pagamento');
         throw error;
       }
 
-      return data;
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });

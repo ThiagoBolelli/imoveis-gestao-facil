@@ -74,18 +74,18 @@ export const useSupabaseProperties = () => {
         createdat: new Date().toISOString().split('T')[0]
       };
 
+      // Supabase will generate the ID automatically
       const { data, error } = await supabase
         .from('properties')
         .insert(propertyData)
-        .select()
-        .single();
+        .select();
 
       if (error) {
         toast.error('Erro ao adicionar imóvel');
         throw error;
       }
 
-      return data;
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
