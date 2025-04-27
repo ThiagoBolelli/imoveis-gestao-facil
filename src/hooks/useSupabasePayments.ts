@@ -61,17 +61,18 @@ export const useSupabasePayments = () => {
 
   const addPaymentMutation = useMutation({
     mutationFn: async (payment: Omit<Payment, 'id' | 'status' | 'paymentDate'>) => {
+      // Convert property names to match the database schema
       const { data, error } = await supabase
         .from('payments')
-        .insert({
+        .insert([{
           tenantid: payment.tenantId,
           propertyid: payment.propertyId,
           amount: payment.amount,
           duedate: payment.dueDate,
           ispaid: false,
-          month: parseInt(payment.month), // Convert string to number for database
-          year: parseInt(payment.year.toString()) // Ensure it's a number
-        })
+          month: parseInt(payment.month),
+          year: parseInt(payment.year.toString())
+        }])
         .select()
         .single();
 

@@ -42,7 +42,7 @@ export const useSupabaseProperties = () => {
     mutationFn: async (property: Omit<Property, 'id'>) => {
       const { data, error } = await supabase
         .from('properties')
-        .insert({
+        .insert([{
           address: property.address,
           listingtype: property.purpose,
           owner: property.owner,
@@ -51,7 +51,7 @@ export const useSupabaseProperties = () => {
           saleprice: property.salePrice,
           description: property.description || null,
           createdat: new Date().toISOString().split('T')[0]
-        })
+        }])
         .select()
         .single();
 

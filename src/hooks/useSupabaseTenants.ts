@@ -38,13 +38,13 @@ export const useSupabaseTenants = () => {
     mutationFn: async (tenant: Omit<Tenant, 'id'>) => {
       const { data, error } = await supabase
         .from('tenants')
-        .insert({
+        .insert([{
           name: tenant.name,
           propertyid: tenant.propertyId,
           startdate: new Date().toISOString().split('T')[0],
           email: tenant.email || null,
           phone: tenant.phone || null
-        })
+        }])
         .select()
         .single();
 

@@ -26,7 +26,7 @@ const AddTenant = () => {
   const handleSubmit = async (data: any) => {
     try {
       // Adicionar o inquilino
-      const tenant = await addTenant(data);
+      const tenantData = await addTenant(data);
       
       // Get property for rent value
       const property = properties.find(p => p.id === data.propertyId);
@@ -40,12 +40,12 @@ const AddTenant = () => {
       const currentYear = currentDate.getFullYear();
       
       await addPayment({
-        tenantId: tenant.id,
+        tenantId: tenantData.id,
         propertyId: data.propertyId,
         amount: property.rentalPrice,
         dueDate: `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${data.dueDate.toString().padStart(2, '0')}`,
         month: currentMonth.toString(),
-        year: currentYear.toString()
+        year: currentYear
       });
       
       toast.success("Inquilino adicionado com sucesso!");
