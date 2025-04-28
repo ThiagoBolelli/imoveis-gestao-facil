@@ -63,10 +63,10 @@ export const useSupabaseTenants = () => {
         phone: tenant.phone || null
       };
 
-      // Using .insert() and passing as an array
+      // Use upsert: false to let Supabase generate the ID
       const { data, error } = await supabase
         .from('tenants')
-        .insert([tenantData])
+        .insert(tenantData)
         .select();
 
       if (error) {

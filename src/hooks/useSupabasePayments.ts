@@ -94,10 +94,10 @@ export const useSupabasePayments = () => {
         year: payment.year
       };
 
-      // Using .insert() and passing as an array
+      // Use upsert: false to let Supabase generate the ID
       const { data, error } = await supabase
         .from('payments')
-        .insert([paymentData])
+        .insert(paymentData)
         .select();
 
       if (error) {

@@ -74,10 +74,10 @@ export const useSupabaseProperties = () => {
         createdat: new Date().toISOString().split('T')[0]
       };
 
-      // Using .insert() and passing as an array
+      // Use upsert: false to let Supabase generate the ID
       const { data, error } = await supabase
         .from('properties')
-        .insert([propertyData])
+        .insert(propertyData)
         .select();
 
       if (error) {
