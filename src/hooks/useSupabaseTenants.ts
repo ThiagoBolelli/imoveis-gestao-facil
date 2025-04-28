@@ -63,11 +63,11 @@ export const useSupabaseTenants = () => {
         phone: tenant.phone || null
       };
 
-      // Use upsert: false to let Supabase generate the ID
+      // Use an object with the correct options instead
       const { data, error } = await supabase
         .from('tenants')
         .insert(tenantData)
-        .select();
+        .select('*');
 
       if (error) {
         toast.error('Erro ao adicionar inquilino');

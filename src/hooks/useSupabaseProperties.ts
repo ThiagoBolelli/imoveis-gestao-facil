@@ -74,11 +74,10 @@ export const useSupabaseProperties = () => {
         createdat: new Date().toISOString().split('T')[0]
       };
 
-      // Use upsert: false to let Supabase generate the ID
       const { data, error } = await supabase
         .from('properties')
         .insert(propertyData)
-        .select();
+        .select('*');
 
       if (error) {
         toast.error('Erro ao adicionar imóvel');

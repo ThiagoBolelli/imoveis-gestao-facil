@@ -94,11 +94,10 @@ export const useSupabasePayments = () => {
         year: payment.year
       };
 
-      // Use upsert: false to let Supabase generate the ID
       const { data, error } = await supabase
         .from('payments')
         .insert(paymentData)
-        .select();
+        .select('*');
 
       if (error) {
         toast.error('Erro ao adicionar pagamento');
