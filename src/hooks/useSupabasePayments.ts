@@ -94,6 +94,7 @@ export const useSupabasePayments = () => {
         year: payment.year
       };
 
+      // Fixed: Now passing array with single object to insert
       const { data, error } = await supabase
         .from('payments')
         .insert([paymentData])

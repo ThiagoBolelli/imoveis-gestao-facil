@@ -63,7 +63,7 @@ export const useSupabaseTenants = () => {
         phone: tenant.phone || null
       };
 
-      // Fixing the insert call to use an array
+      // Fixed: Now passing array with single object to insert
       const { data, error } = await supabase
         .from('tenants')
         .insert([tenantData])
@@ -82,9 +82,33 @@ export const useSupabaseTenants = () => {
     },
   });
 
+  const removeTenantMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      // Mark the end date as today and save it
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { error } = await supabase
+        .from('tenants')
+        .update({ enddate: today })
+        .eq('id', tenantId);
+
+      if (error) {
+        toast.error('Erro ao remover inquilino');
+        throw error;
+      }
+
+      return { id: tenantId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      toast.success('Contrato de inquilino finalizado com sucesso!');
+    },
+  });
+
   return {
     tenants,
     isLoading,
     addTenant: addTenantMutation.mutate,
+    removeTenant: removeTenantMutation.mutate,
   };
 };

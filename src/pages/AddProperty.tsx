@@ -9,7 +9,18 @@ const AddProperty = () => {
   const { addProperty } = useSupabaseProperties();
   
   const handleSubmit = async (data: PropertyFormValues) => {
-    await addProperty(data);
+    // Garantir que os valores exigidos estão presentes
+    const property = {
+      address: data.address,
+      purpose: data.purpose,
+      owner: data.owner,
+      type: data.type,
+      salePrice: data.salePrice ? parseFloat(data.salePrice) : undefined,
+      rentalPrice: data.rentalPrice ? parseFloat(data.rentalPrice) : undefined,
+      description: data.description
+    };
+    
+    await addProperty(property);
     navigate("/imoveis");
   };
   

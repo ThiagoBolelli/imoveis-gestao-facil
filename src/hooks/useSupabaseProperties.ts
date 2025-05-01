@@ -22,8 +22,8 @@ type PropertyInput = {
   purpose: string;
   owner: string;
   type: string;
-  rentalPrice: number;
-  salePrice: number;
+  rentalPrice?: number;
+  salePrice?: number;
   description?: string;
 };
 
@@ -71,13 +71,13 @@ export const useSupabaseProperties = () => {
         listingtype: property.purpose,
         owner: property.owner,
         propertytype: property.type,
-        rentalprice: property.rentalPrice,
-        saleprice: property.salePrice,
+        rentalprice: property.rentalPrice || null,
+        saleprice: property.salePrice || null,
         description: property.description || null,
         createdat: new Date().toISOString().split('T')[0]
       };
 
-      // Fixing the insert call to use an array
+      // Fixed: Now passing array with single object to insert
       const { data, error } = await supabase
         .from('properties')
         .insert([propertyData])
@@ -105,8 +105,8 @@ export const useSupabaseProperties = () => {
         listingtype: rest.purpose,
         owner: rest.owner,
         propertytype: rest.type,
-        rentalprice: rest.rentalPrice,
-        saleprice: rest.salePrice,
+        rentalprice: rest.rentalPrice || null,
+        saleprice: rest.salePrice || null,
         description: rest.description || null,
       };
 

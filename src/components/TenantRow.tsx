@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { KeyRound, Check, Calendar } from 'lucide-react';
+import { KeyRound, Check, Calendar, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,7 +8,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { formatCurrency } from '@/lib/utils';
 import { Payment, Property } from '@/services/googleSheetsService';
 
@@ -23,9 +35,10 @@ interface TenantRowProps {
   property: Property | undefined;
   payments: Payment[];
   onMarkAsPaid: (paymentId: string) => void;
+  onRemoveTenant?: (tenantId: string) => void;
 }
 
-const TenantRow = ({ tenant, property, payments, onMarkAsPaid }: TenantRowProps) => {
+const TenantRow = ({ tenant, property, payments, onMarkAsPaid, onRemoveTenant }: TenantRowProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const currentMonthPayment = payments.find(
@@ -83,6 +96,42 @@ const TenantRow = ({ tenant, property, payments, onMarkAsPaid }: TenantRowProps)
             >
               {isPaid ? 'Pago' : 'Não Pago'}
             </span>
+            
+            {onRemoveTenant && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    className="ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Finalizar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Finalizar Contrato</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja finalizar o contrato com este inquilino? 
+                      Esta ação marcará o imóvel como disponível para aluguel novamente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onRemoveTenant(tenant.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Finalizar Contrato
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </div>
@@ -142,6 +191,42 @@ const TenantRow = ({ tenant, property, payments, onMarkAsPaid }: TenantRowProps)
                 </div>
               ))}
           </div>
+          
+          {onRemoveTenant && (
+            <DialogFooter>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <X className="h-4 w-4 mr-2" />
+                    Finalizar Contrato
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Finalizar Contrato</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja finalizar o contrato com este inquilino? 
+                      Esta ação marcará o imóvel como disponível para aluguel novamente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        if (onRemoveTenant) {
+                          onRemoveTenant(tenant.id);
+                          setIsModalOpen(false);
+                        }
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Finalizar Contrato
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </>

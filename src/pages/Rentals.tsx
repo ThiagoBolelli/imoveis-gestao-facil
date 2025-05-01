@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Filter, RefreshCw } from 'lucide-react';
@@ -13,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 const Rentals = () => {
   const navigate = useNavigate();
   const { properties } = useSupabaseProperties();
-  const { tenants, isLoading: tenantsLoading } = useSupabaseTenants();
+  const { tenants, isLoading: tenantsLoading, removeTenant } = useSupabaseTenants();
   const { payments, isLoading: paymentsLoading, updatePaymentStatus } = useSupabasePayments();
   const [filteredTenants, setFilteredTenants] = useState(tenants);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,7 +35,9 @@ const Rentals = () => {
       });
       setFilteredTenants(results);
     } else {
-      setFilteredTenants(tenants);
+      // Filtra apenas inquilinos ativos (sem data de término)
+      const activeTenants = tenants.filter(tenant => !tenant.endDate);
+      setFilteredTenants(activeTenants);
     }
   }, [searchQuery, tenants, properties]);
   
@@ -51,6 +54,15 @@ const Rentals = () => {
     } catch (error) {
       console.error('Erro ao registrar pagamento:', error);
       toast.error("Erro ao registrar pagamento. Tente novamente.");
+    }
+  };
+
+  const handleRemoveTenant = async (tenantId: string) => {
+    try {
+      await removeTenant(tenantId);
+    } catch (error) {
+      console.error('Erro ao remover inquilino:', error);
+      toast.error("Erro ao finalizar contrato. Tente novamente.");
     }
   };
 
@@ -80,7 +92,7 @@ const Rentals = () => {
   // Lista de imóveis disponíveis para aluguel (para o botão de adicionar inquilino)
   const rentalPropertiesAvailable = properties.filter(p => 
     p.purpose === 'Aluguel' && 
-    !tenants.some(t => t.propertyId === p.id)
+    !tenants.some(t => t.propertyId === p.id && !t.endDate) // Verifica se não há inquilino ativo
   );
   
   return (
@@ -206,6 +218,7 @@ const Rentals = () => {
                   property={propertyInfo}
                   payments={payments.filter(p => p.tenantId === tenant.id)}
                   onMarkAsPaid={handleMarkAsPaid}
+                  onRemoveTenant={handleRemoveTenant}
                 />
               );
             })}
@@ -224,6 +237,55 @@ const Rentals = () => {
                 Adicionar Inquilino
               </Button>
             )}
+          </div>
+        )}
+      </div>
+      
+      {/* Seção de inquilinos com contratos encerrados */}
+      <div className="mt-10">
+        <h2 className="text-xl font-medium mb-4">Contratos Finalizados</h2>
+        
+        {isLoading ? (
+          <div className="text-center py-6">Carregando dados...</div>
+        ) : tenants.filter(t => t.endDate).length > 0 ? (
+          <div className="bg-white p-4 rounded-lg">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imóvel</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Início</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Término</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {tenants
+                    .filter(tenant => tenant.endDate)
+                    .map(tenant => {
+                      const property = properties.find(p => p.id === tenant.propertyId);
+                      return (
+                        <tr key={tenant.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{tenant.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{property?.address || "N/A"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(tenant.startDate).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {tenant.endDate && new Date(tenant.endDate).toLocaleDateString('pt-BR')}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gray-50 p-6 rounded-lg text-center">
+            <p className="text-gray-500">
+              Não há contratos finalizados para exibir.
+            </p>
           </div>
         )}
       </div>
