@@ -27,6 +27,9 @@ type PropertyInput = {
   description?: string;
 };
 
+// Create a type for property updates
+type PropertyUpdate = PropertyInput & { id: string };
+
 export const useSupabaseProperties = () => {
   const queryClient = useQueryClient();
 
@@ -76,7 +79,7 @@ export const useSupabaseProperties = () => {
 
       const { data, error } = await supabase
         .from('properties')
-        .insert(propertyData)
+        .insert([propertyData])
         .select('*');
 
       if (error) {
@@ -89,6 +92,39 @@ export const useSupabaseProperties = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       toast.success('Imóvel adicionado com sucesso!');
+    },
+  });
+
+  const updatePropertyMutation = useMutation({
+    mutationFn: async (property: PropertyUpdate) => {
+      const { id, ...rest } = property;
+      
+      const propertyData = {
+        address: rest.address,
+        listingtype: rest.purpose,
+        owner: rest.owner,
+        propertytype: rest.type,
+        rentalprice: rest.rentalPrice,
+        saleprice: rest.salePrice,
+        description: rest.description || null,
+      };
+
+      const { data, error } = await supabase
+        .from('properties')
+        .update(propertyData)
+        .eq('id', id)
+        .select('*');
+
+      if (error) {
+        toast.error('Erro ao atualizar imóvel');
+        throw error;
+      }
+
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      toast.success('Imóvel atualizado com sucesso!');
     },
   });
 
@@ -114,6 +150,7 @@ export const useSupabaseProperties = () => {
     properties,
     isLoading,
     addProperty: addPropertyMutation.mutate,
+    updateProperty: updatePropertyMutation.mutate,
     deleteProperty: deletePropertyMutation.mutate,
   };
 };

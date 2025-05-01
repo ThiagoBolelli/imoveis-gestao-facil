@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import AddProperty from "./pages/AddProperty";
+import EditProperty from "./pages/EditProperty";
 import Rentals from "./pages/Rentals";
 import AddTenant from "./pages/AddTenant";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/imoveis" element={<Properties />} />
             <Route path="/imoveis/adicionar" element={<AddProperty />} />
+            <Route path="/imoveis/editar/:id" element={<EditProperty />} />
             <Route path="/alugueis" element={<Rentals />} />
             <Route path="/alugueis/adicionar" element={<AddTenant />} />
           </Route>

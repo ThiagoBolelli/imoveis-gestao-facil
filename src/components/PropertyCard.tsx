@@ -1,11 +1,12 @@
 
-import { Plus } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import { Property } from '@/services/googleSheetsService';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PropertyIcon } from './property/PropertyIcon';
 import { PropertyStatus } from './property/PropertyStatus';
 import { DeletePropertyDialog } from './property/DeletePropertyDialog';
+import { Link } from 'react-router-dom';
 
 interface PropertyCardProps {
   property: Property;
@@ -44,6 +45,16 @@ const PropertyCard = ({ property, onAddTenant, onDelete, hasTenant = false }: Pr
           </span>
           
           <div className="flex gap-2">
+            <Link to={`/imoveis/editar/${id}`}>
+              <Button
+                variant="outline"
+                className="text-xs px-2 py-1 h-8"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Editar
+              </Button>
+            </Link>
+            
             {isRental && !hasTenant && onAddTenant && (
               <Button 
                 variant="outline" 

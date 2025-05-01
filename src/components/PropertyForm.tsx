@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,14 +38,16 @@ type PropertyFormValues = z.infer<typeof propertySchema>;
 
 interface PropertyFormProps {
   onSubmit: (data: any) => void;
+  initialData?: PropertyFormValues;
+  isEditing?: boolean;
 }
 
-const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
-  const [purpose, setPurpose] = useState<string>('');
+const PropertyForm = ({ onSubmit, initialData, isEditing = false }: PropertyFormProps) => {
+  const [purpose, setPurpose] = useState<string>(initialData?.purpose || '');
   
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema),
-    defaultValues: {
+    defaultValues: initialData || {
       address: '',
       purpose: '',
       owner: '',
@@ -56,6 +57,12 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       description: '',
     },
   });
+  
+  useEffect(() => {
+    if (initialData && initialData.purpose) {
+      setPurpose(initialData.purpose);
+    }
+  }, [initialData]);
   
   const handlePurposeChange = (value: string) => {
     setPurpose(value);
@@ -72,8 +79,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     
     onSubmit(formattedData);
     
-    toast.success("Imóvel cadastrado com sucesso!");
-    form.reset();
+    if (!isEditing) {
+      form.reset();
+    }
   };
   
   return (
@@ -83,7 +91,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
           <ArrowLeft size={20} className="mr-1" />
           <span>Voltar</span>
         </Link>
-        <h1 className="text-2xl font-bold">Adicionar Imóvel</h1>
+        <h1 className="text-2xl font-bold">{isEditing ? 'Editar Imóvel' : 'Adicionar Imóvel'}</h1>
       </div>
       
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -251,7 +259,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   )}
                   
                   <Button type="submit" className="w-full mt-6">
-                    Cadastrar Imóvel
+                    {isEditing ? 'Salvar Alterações' : 'Cadastrar Imóvel'}
                   </Button>
                 </div>
               </form>
@@ -260,7 +268,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
           
           <div className="hidden lg:block">
             <div className="bg-blue-50 p-6 rounded-lg h-full">
-              <h3 className="text-lg font-medium mb-3">Dicas para cadastro</h3>
+              <h3 className="text-lg font-medium mb-3">
+                {isEditing ? 'Dicas para edição' : 'Dicas para cadastro'}
+              </h3>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start">
                   <span className="text-primary font-bold mr-2">•</span>

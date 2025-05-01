@@ -96,7 +96,7 @@ export const useSupabasePayments = () => {
 
       const { data, error } = await supabase
         .from('payments')
-        .insert(paymentData)
+        .insert([paymentData])
         .select('*');
 
       if (error) {
