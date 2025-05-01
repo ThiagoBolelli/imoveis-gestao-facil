@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import PropertyForm from '@/components/PropertyForm';
 import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
 import { toast } from '@/components/ui/sonner';
+import { PropertyFormValues } from '@/components/property-form/PropertyFormSchema';
 
 const EditProperty = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +21,7 @@ const EditProperty = () => {
     }
   }, [property, isLoading, navigate]);
   
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: PropertyFormValues) => {
     if (id) {
       await updateProperty({ id, ...data });
       navigate("/imoveis");

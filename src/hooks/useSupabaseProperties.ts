@@ -77,6 +77,7 @@ export const useSupabaseProperties = () => {
         createdat: new Date().toISOString().split('T')[0]
       };
 
+      // Fixing the insert call to use an array
       const { data, error } = await supabase
         .from('properties')
         .insert([propertyData])

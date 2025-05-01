@@ -63,7 +63,7 @@ export const useSupabaseTenants = () => {
         phone: tenant.phone || null
       };
 
-      // Usando a opção upsert: false para deixar o Supabase gerar o ID
+      // Fixing the insert call to use an array
       const { data, error } = await supabase
         .from('tenants')
         .insert([tenantData])
