@@ -59,7 +59,7 @@ export const useSupabaseTenants = () => {
 
       const { data, error } = await supabase
         .from('tenants')
-        .insert(tenantData)
+        .insert([tenantData])  // <- Pass as array here
         .select()
         .single();
 

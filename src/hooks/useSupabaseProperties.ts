@@ -71,7 +71,7 @@ export const useSupabaseProperties = () => {
 
       const { data, error } = await supabase
         .from('properties')
-        .insert(propertyData)
+        .insert([propertyData])  // <- Pass as array here
         .select()
         .single();
 
