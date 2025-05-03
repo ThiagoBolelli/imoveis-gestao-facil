@@ -23,7 +23,19 @@ const EditProperty = () => {
   
   const handleSubmit = async (data: PropertyFormValues) => {
     if (id) {
-      await updateProperty({ id, ...data });
+      // Fixed: Ensuring all required properties are included
+      const propertyData = {
+        id,
+        address: data.address,
+        purpose: data.purpose,
+        owner: data.owner,
+        type: data.type,
+        salePrice: data.salePrice ? parseFloat(data.salePrice) : undefined,
+        rentalPrice: data.rentalPrice ? parseFloat(data.rentalPrice) : undefined,
+        description: data.description || ''
+      };
+      
+      await updateProperty(propertyData);
       navigate("/imoveis");
     }
   };
@@ -42,8 +54,8 @@ const EditProperty = () => {
     purpose: property.purpose,
     owner: property.owner,
     type: property.type,
-    salePrice: property.salePrice.toString(),
-    rentalPrice: property.rentalPrice.toString(),
+    salePrice: property.salePrice?.toString() || '',
+    rentalPrice: property.rentalPrice?.toString() || '',
     description: property.description || ''
   };
   

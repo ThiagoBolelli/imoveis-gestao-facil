@@ -77,18 +77,19 @@ export const useSupabaseProperties = () => {
         createdat: new Date().toISOString().split('T')[0]
       };
 
-      // Fixed: Now passing array with single object to insert
+      // Fixed: Now using single object instead of array
       const { data, error } = await supabase
         .from('properties')
-        .insert([propertyData])
-        .select('*');
+        .insert(propertyData)
+        .select('*')
+        .single();
 
       if (error) {
         toast.error('Erro ao adicionar imóvel');
         throw error;
       }
 
-      return data[0];
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -114,14 +115,15 @@ export const useSupabaseProperties = () => {
         .from('properties')
         .update(propertyData)
         .eq('id', id)
-        .select('*');
+        .select('*')
+        .single();
 
       if (error) {
         toast.error('Erro ao atualizar imóvel');
         throw error;
       }
 
-      return data[0];
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });

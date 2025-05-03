@@ -94,18 +94,19 @@ export const useSupabasePayments = () => {
         year: payment.year
       };
 
-      // Fixed: Now passing array with single object to insert
+      // Fixed: Now using single object instead of array
       const { data, error } = await supabase
         .from('payments')
-        .insert([paymentData])
-        .select('*');
+        .insert(paymentData)
+        .select('*')
+        .single();
 
       if (error) {
         toast.error('Erro ao adicionar pagamento');
         throw error;
       }
 
-      return data[0];
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });

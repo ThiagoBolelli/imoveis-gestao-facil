@@ -63,18 +63,19 @@ export const useSupabaseTenants = () => {
         phone: tenant.phone || null
       };
 
-      // Fixed: Now passing array with single object to insert
+      // Fixed: Now using single object instead of array
       const { data, error } = await supabase
         .from('tenants')
-        .insert([tenantData])
-        .select('*');
+        .insert(tenantData)
+        .select('*')
+        .single();
 
       if (error) {
         toast.error('Erro ao adicionar inquilino');
         throw error;
       }
 
-      return data[0];
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
