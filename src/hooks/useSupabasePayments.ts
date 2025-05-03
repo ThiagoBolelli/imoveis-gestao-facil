@@ -5,8 +5,8 @@ import { toast } from '@/components/ui/sonner';
 import type { Payment } from '@/services/googleSheetsService';
 import type { Database } from '@/integrations/supabase/types';
 
-// Define a type that omits the 'id' field which is auto-generated
-type DbPaymentInsert = Omit<Database['public']['Tables']['payments']['Insert'], 'id'>;
+// Define a type that uses Supabase's Insert type which already correctly omits auto-generated fields
+type PaymentInsert = Database['public']['Tables']['payments']['Insert'];
 
 // Create a type for our frontend Payment format (for mutation)
 type PaymentInput = {
@@ -76,7 +76,7 @@ export const useSupabasePayments = () => {
   const addPaymentMutation = useMutation({
     mutationFn: async (payment: PaymentInput) => {
       // Convert property names to match the database schema
-      const paymentData: DbPaymentInsert = {
+      const paymentData: PaymentInsert = {
         tenantid: payment.tenantId,
         propertyid: payment.propertyId,
         amount: payment.amount,
@@ -88,7 +88,7 @@ export const useSupabasePayments = () => {
 
       const { data, error } = await supabase
         .from('payments')
-        .insert([paymentData])  // <- Pass as array here
+        .insert([paymentData])  // Pass as array here
         .select()
         .single();
 

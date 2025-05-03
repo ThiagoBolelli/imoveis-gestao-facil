@@ -5,8 +5,8 @@ import { toast } from '@/components/ui/sonner';
 import type { Tenant } from '@/services/googleSheetsService';
 import type { Database } from '@/integrations/supabase/types';
 
-// Define a type that omits the 'id' field which is auto-generated
-type DbTenantInsert = Omit<Database['public']['Tables']['tenants']['Insert'], 'id'>;
+// Define a type that uses Supabase's Insert type which already correctly omits auto-generated fields
+type TenantInsert = Database['public']['Tables']['tenants']['Insert'];
 
 // Create a type for our frontend Tenant format (for mutation)
 type TenantInput = {
@@ -49,7 +49,7 @@ export const useSupabaseTenants = () => {
 
   const addTenantMutation = useMutation({
     mutationFn: async (tenant: TenantInput) => {
-      const tenantData: DbTenantInsert = {
+      const tenantData: TenantInsert = {
         name: tenant.name,
         propertyid: tenant.propertyId,
         startdate: new Date().toISOString().split('T')[0],
@@ -59,7 +59,7 @@ export const useSupabaseTenants = () => {
 
       const { data, error } = await supabase
         .from('tenants')
-        .insert([tenantData])  // <- Pass as array here
+        .insert([tenantData])  // Pass as array here
         .select()
         .single();
 
