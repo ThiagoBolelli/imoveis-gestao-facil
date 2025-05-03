@@ -18,6 +18,11 @@ type PaymentInput = {
   year: number;
 };
 
+// Helper function to generate a unique ID
+const generateId = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 export const useSupabasePayments = () => {
   const queryClient = useQueryClient();
 
@@ -75,8 +80,12 @@ export const useSupabasePayments = () => {
 
   const addPaymentMutation = useMutation({
     mutationFn: async (payment: PaymentInput) => {
+      // Generate a unique ID for the new payment
+      const id = generateId();
+      
       // Convert property names to match the database schema
-      const paymentData: PaymentInsert = {
+      const paymentData = {
+        id,
         tenantid: payment.tenantId,
         propertyid: payment.propertyId,
         amount: payment.amount,
@@ -88,7 +97,7 @@ export const useSupabasePayments = () => {
 
       const { data, error } = await supabase
         .from('payments')
-        .insert([paymentData])  // Pass as array here
+        .insert([paymentData])
         .select()
         .single();
 

@@ -22,6 +22,11 @@ type PropertyInput = {
 // Create a type for property updates
 type PropertyUpdate = PropertyInput & { id: string };
 
+// Helper function to generate a unique ID
+const generateId = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 export const useSupabaseProperties = () => {
   const queryClient = useQueryClient();
 
@@ -58,7 +63,11 @@ export const useSupabaseProperties = () => {
 
   const addPropertyMutation = useMutation({
     mutationFn: async (property: PropertyInput) => {
-      const propertyData: PropertyInsert = {
+      // Generate a unique ID for the new property
+      const id = generateId();
+      
+      const propertyData = {
+        id,
         address: property.address,
         listingtype: property.purpose,
         owner: property.owner,
@@ -71,7 +80,7 @@ export const useSupabaseProperties = () => {
 
       const { data, error } = await supabase
         .from('properties')
-        .insert([propertyData])  // Pass as array here
+        .insert([propertyData])
         .select()
         .single();
 

@@ -17,6 +17,11 @@ type TenantInput = {
   dueDate?: number;
 };
 
+// Helper function to generate a unique ID
+const generateId = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 export const useSupabaseTenants = () => {
   const queryClient = useQueryClient();
 
@@ -49,7 +54,11 @@ export const useSupabaseTenants = () => {
 
   const addTenantMutation = useMutation({
     mutationFn: async (tenant: TenantInput) => {
-      const tenantData: TenantInsert = {
+      // Generate a unique ID for the new tenant
+      const id = generateId();
+      
+      const tenantData = {
+        id,
         name: tenant.name,
         propertyid: tenant.propertyId,
         startdate: new Date().toISOString().split('T')[0],
@@ -59,7 +68,7 @@ export const useSupabaseTenants = () => {
 
       const { data, error } = await supabase
         .from('tenants')
-        .insert([tenantData])  // Pass as array here
+        .insert([tenantData])
         .select()
         .single();
 
