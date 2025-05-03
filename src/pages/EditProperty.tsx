@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PropertyForm from '@/components/PropertyForm';
@@ -23,7 +22,7 @@ const EditProperty = () => {
   
   const handleSubmit = async (data: PropertyFormValues) => {
     if (id) {
-      // Fixed: Ensuring all required properties are included
+      // Make sure all required fields are included
       const propertyData = {
         id,
         address: data.address,
