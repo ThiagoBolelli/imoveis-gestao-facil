@@ -5,8 +5,8 @@ import { toast } from '@/components/ui/sonner';
 import type { Property } from '@/services/googleSheetsService';
 import type { Database } from '@/integrations/supabase/types';
 
-// Use the types from Supabase's generated types
-type DbPropertyInsert = Database['public']['Tables']['properties']['Insert'];
+// Define a type that omits the 'id' field which is auto-generated
+type DbPropertyInsert = Omit<Database['public']['Tables']['properties']['Insert'], 'id'>;
 
 // Create a type for our frontend Property format (for mutation)
 type PropertyInput = {

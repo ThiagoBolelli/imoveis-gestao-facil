@@ -5,8 +5,8 @@ import { toast } from '@/components/ui/sonner';
 import type { Payment } from '@/services/googleSheetsService';
 import type { Database } from '@/integrations/supabase/types';
 
-// Use the types from Supabase's generated types
-type DbPaymentInsert = Database['public']['Tables']['payments']['Insert'];
+// Define a type that omits the 'id' field which is auto-generated
+type DbPaymentInsert = Omit<Database['public']['Tables']['payments']['Insert'], 'id'>;
 
 // Create a type for our frontend Payment format (for mutation)
 type PaymentInput = {
