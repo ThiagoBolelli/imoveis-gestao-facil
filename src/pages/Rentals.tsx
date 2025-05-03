@@ -35,7 +35,7 @@ const Rentals = () => {
       });
       setFilteredTenants(results);
     } else {
-      // Filtra apenas inquilinos ativos (sem data de término)
+      // Filter only active tenants (without end date)
       const activeTenants = tenants.filter(tenant => !tenant.endDate);
       setFilteredTenants(activeTenants);
     }
@@ -60,6 +60,9 @@ const Rentals = () => {
   const handleRemoveTenant = async (tenantId: string) => {
     try {
       await removeTenant(tenantId);
+      toast.success("Contrato finalizado com sucesso!");
+      // Refresh data to update UI
+      await handleSyncData();
     } catch (error) {
       console.error('Erro ao remover inquilino:', error);
       toast.error("Erro ao finalizar contrato. Tente novamente.");
@@ -84,15 +87,15 @@ const Rentals = () => {
     }
   };
   
-  // Função para encontrar a propriedade de um inquilino
+  // Function to find the property for a tenant
   const getPropertyForTenant = (propertyId: string) => {
     return properties.find(p => p.id === propertyId);
   };
   
-  // Lista de imóveis disponíveis para aluguel (para o botão de adicionar inquilino)
+  // List of properties available for rent (for the add tenant button)
   const rentalPropertiesAvailable = properties.filter(p => 
     p.purpose === 'Aluguel' && 
-    !tenants.some(t => t.propertyId === p.id && !t.endDate) // Verifica se não há inquilino ativo
+    !tenants.some(t => t.propertyId === p.id && !t.endDate) // Check if there's no active tenant
   );
   
   return (
@@ -122,7 +125,7 @@ const Rentals = () => {
         </div>
       </div>
       
-      {/* Barra de busca */}
+      {/* Search bar */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
@@ -145,7 +148,7 @@ const Rentals = () => {
         </div>
       </div>
       
-      {/* Lista de imóveis disponíveis para aluguel */}
+      {/* List of properties available for rent */}
       <div className="mb-8">
         <h2 className="text-xl font-medium mb-4">Imóveis Disponíveis para Aluguel</h2>
         
@@ -192,7 +195,7 @@ const Rentals = () => {
         )}
       </div>
       
-      {/* Lista de inquilinos */}
+      {/* List of tenants */}
       <div>
         <h2 className="text-xl font-medium mb-4">Inquilinos Ativos</h2>
         
@@ -241,7 +244,7 @@ const Rentals = () => {
         )}
       </div>
       
-      {/* Seção de inquilinos com contratos encerrados */}
+      {/* Section for tenants with ended contracts */}
       <div className="mt-10">
         <h2 className="text-xl font-medium mb-4">Contratos Finalizados</h2>
         

@@ -7,9 +7,15 @@ import { useSupabaseProperties } from '@/hooks/useSupabaseProperties';
 import PropertyFilters from '@/components/property/PropertyFilters';
 import PropertyList from '@/components/property/PropertyList';
 import { useSupabaseTenants } from '@/hooks/useSupabaseTenants';
+import { useState } from 'react';
+import { toast } from '@/components/ui/sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Properties = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isSyncing, setIsSyncing] = useState(false);
+  
   const { 
     properties, 
     isLoading, 
@@ -31,13 +37,40 @@ const Properties = () => {
 
   const propertyTypes = [...new Set(properties.map(property => property.type))];
   
-  // Verificar se um imóvel tem inquilino
+  // Check if a property has an active tenant (no end date)
   const hasTenant = (propertyId: string) => {
-    return tenants.some(tenant => tenant.propertyId === propertyId);
+    return tenants.some(tenant => tenant.propertyId === propertyId && !tenant.endDate);
   };
 
   const handleAddTenant = (propertyId: string) => {
     navigate(`/alugueis/adicionar?propertyId=${propertyId}`);
+  };
+
+  const handleSyncData = async () => {
+    setIsSyncing(true);
+    try {
+      // Invalidate queries to refresh data from Supabase
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['properties'] }),
+        queryClient.invalidateQueries({ queryKey: ['tenants'] })
+      ]);
+      toast.success("Dados sincronizados com sucesso!");
+    } catch (error) {
+      console.error("Erro ao sincronizar dados:", error);
+      toast.error("Erro ao sincronizar dados. Tente novamente.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleDeleteProperty = async (propertyId: string) => {
+    try {
+      await deleteProperty(propertyId);
+      toast.success("Imóvel removido com sucesso!");
+    } catch (error) {
+      console.error("Erro ao remover imóvel:", error);
+      toast.error("Erro ao remover imóvel. Tente novamente.");
+    }
   };
 
   return (
@@ -46,6 +79,16 @@ const Properties = () => {
         <h1 className="text-2xl font-bold mb-4 sm:mb-0">Imóveis</h1>
         
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleSyncData}
+            disabled={isSyncing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Sincronizando...' : 'Sincronizar Dados'}
+          </Button>
+
           <Button 
             onClick={() => navigate("/imoveis/adicionar")}
             className="bg-primary hover:bg-primary/90"
@@ -72,7 +115,8 @@ const Properties = () => {
         isLoading={isLoading}
         hasTenant={hasTenant}
         onAddTenant={handleAddTenant}
-        onDelete={deleteProperty}
+        onDelete={handleDeleteProperty}
+        onSyncData={handleSyncData}
       />
     </div>
   );
